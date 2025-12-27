@@ -441,9 +441,19 @@ h1 {
     stroke: #6b8e7f;
     stroke-width: 8;
     stroke-linecap: round;
-    stroke-dasharray: 817;
+    stroke-dasharray: 817; /* For large circle (r=130) */
     stroke-dashoffset: 0;
     transition: stroke-dashoffset 1s linear;
+}
+
+/* Small circle specific styles */
+.circle-svg-small .circle-bg {
+    stroke-width: 6;
+}
+
+.circle-svg-small .circle-progress {
+    stroke-width: 6;
+    stroke-dasharray: 339.292; /* For small circle (r=54) */
 }
 
 .controls {
