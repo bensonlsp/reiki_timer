@@ -36,48 +36,59 @@ function initAudioContext() {
 
 // Play healing bell sound using Web Audio API
 function playBellSound() {
-    initAudioContext();
+    try {
+        initAudioContext();
 
-    const now = audioContext.currentTime;
+        if (!audioContext) {
+            console.error('AudioContext not initialized');
+            return;
+        }
 
-    // Create oscillators for a bell-like sound
-    const frequencies = [800, 1000, 1200, 1600];
+        const now = audioContext.currentTime;
 
-    frequencies.forEach((freq, index) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        // Create oscillators for a bell-like sound
+        const frequencies = [800, 1000, 1200, 1600];
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+        frequencies.forEach((freq, index) => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
 
-        oscillator.frequency.value = freq;
-        oscillator.type = 'sine';
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
 
-        // Create envelope for bell sound
-        gainNode.gain.setValueAtTime(0, now);
-        gainNode.gain.linearRampToValueAtTime(0.3 / (index + 1), now + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 2);
+            oscillator.frequency.value = freq;
+            oscillator.type = 'sine';
 
-        oscillator.start(now);
-        oscillator.stop(now + 2);
-    });
+            // Create envelope for bell sound
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.3 / (index + 1), now + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 2);
 
-    // Add a subtle lower frequency for depth
-    const bass = audioContext.createOscillator();
-    const bassGain = audioContext.createGain();
+            oscillator.start(now);
+            oscillator.stop(now + 2);
+        });
 
-    bass.connect(bassGain);
-    bassGain.connect(audioContext.destination);
+        // Add a subtle lower frequency for depth
+        const bass = audioContext.createOscillator();
+        const bassGain = audioContext.createGain();
 
-    bass.frequency.value = 200;
-    bass.type = 'sine';
+        bass.connect(bassGain);
+        bassGain.connect(audioContext.destination);
 
-    bassGain.gain.setValueAtTime(0, now);
-    bassGain.gain.linearRampToValueAtTime(0.2, now + 0.01);
-    bassGain.gain.exponentialRampToValueAtTime(0.01, now + 2.5);
+        bass.frequency.value = 200;
+        bass.type = 'sine';
 
-    bass.start(now);
-    bass.stop(now + 2.5);
+        bassGain.gain.setValueAtTime(0, now);
+        bassGain.gain.linearRampToValueAtTime(0.2, now + 0.01);
+        bassGain.gain.exponentialRampToValueAtTime(0.01, now + 2.5);
+
+        bass.start(now);
+        bass.stop(now + 2.5);
+
+        console.log('Bell sound played');
+    } catch (error) {
+        console.error('Error playing bell sound:', error);
+    }
 }
 
 // Adjust minutes
