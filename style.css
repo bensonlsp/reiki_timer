@@ -527,6 +527,32 @@ h1 {
     display: none;
 }
 
+/* Attribution Footer */
+.attribution {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #f0ebe3;
+    text-align: center;
+}
+
+.attribution p {
+    font-size: 11px;
+    color: #999;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.attribution a {
+    color: #6b8e7f;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.attribution a:hover {
+    color: #5a7a6d;
+    text-decoration: underline;
+}
+
 /* Animations */
 @keyframes fadeIn {
     from {
@@ -746,6 +772,16 @@ h1 {
     .completion-screen p {
         font-size: 14px;
         margin-bottom: 32px;
+    }
+
+    .attribution {
+        margin-top: 24px;
+        padding-top: 20px;
+    }
+
+    .attribution p {
+        font-size: 10px;
+        line-height: 1.5;
     }
 }
 

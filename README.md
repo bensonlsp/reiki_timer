@@ -38,9 +38,10 @@
 ## 技術實現
 
 - 純HTML、CSS、JavaScript實現
-- 使用Web Audio API生成治癒鐘聲
-- 響應式設計，支持各種屏幕尺寸
+- 使用HTML5 Audio播放真實頌砵音效
+- 響應式設計，支持各種屏幕尺寸（桌面版大圓圈，手機版小圓圈）
 - 完全離線運行（音樂除外）
+- 移動端優化：支援震動反饋和視覺提示
 
 ## 背景音樂說明
 
@@ -55,3 +56,11 @@
 - 計時器會持續運行，不受視窗切換影響
 
 願你的療癒之旅充滿光與愛 🙏
+
+## 音頻版權聲明
+
+本項目使用的頌砵音效來自 Freesound：
+
+**Bowl Bell #1 (One Hit - Fade).wav** by AncientOracle
+https://freesound.org/s/476871/
+License: [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)
