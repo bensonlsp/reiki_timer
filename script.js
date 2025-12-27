@@ -44,9 +44,14 @@ function playBellSound() {
             return;
         }
 
+        // Resume AudioContext if it was suspended (important for background tabs)
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+
         const now = audioContext.currentTime;
 
-        // Create oscillators for a bell-like sound
+        // Create oscillators for a bell-like sound with increased volume
         const frequencies = [800, 1000, 1200, 1600];
 
         frequencies.forEach((freq, index) => {
@@ -59,16 +64,16 @@ function playBellSound() {
             oscillator.frequency.value = freq;
             oscillator.type = 'sine';
 
-            // Create envelope for bell sound
+            // Create envelope for bell sound with higher volume
             gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.3 / (index + 1), now + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 2);
+            gainNode.gain.linearRampToValueAtTime(0.6 / (index + 1), now + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 2.5);
 
             oscillator.start(now);
-            oscillator.stop(now + 2);
+            oscillator.stop(now + 2.5);
         });
 
-        // Add a subtle lower frequency for depth
+        // Add a stronger lower frequency for depth
         const bass = audioContext.createOscillator();
         const bassGain = audioContext.createGain();
 
@@ -79,15 +84,37 @@ function playBellSound() {
         bass.type = 'sine';
 
         bassGain.gain.setValueAtTime(0, now);
-        bassGain.gain.linearRampToValueAtTime(0.2, now + 0.01);
-        bassGain.gain.exponentialRampToValueAtTime(0.01, now + 2.5);
+        bassGain.gain.linearRampToValueAtTime(0.4, now + 0.01);
+        bassGain.gain.exponentialRampToValueAtTime(0.01, now + 3);
 
         bass.start(now);
-        bass.stop(now + 2.5);
+        bass.stop(now + 3);
 
-        console.log('Bell sound played');
+        // Add visual feedback
+        flashScreen();
+
+        console.log('Bell sound played, AudioContext state:', audioContext.state);
     } catch (error) {
         console.error('Error playing bell sound:', error);
+    }
+}
+
+// Visual feedback when bell rings
+function flashScreen() {
+    const container = document.querySelector('.container');
+    if (container) {
+        container.style.transition = 'box-shadow 0.3s ease';
+        container.style.boxShadow = '0 0 40px rgba(107, 142, 127, 0.6), 0 10px 40px rgba(0, 0, 0, 0.08)';
+
+        setTimeout(() => {
+            container.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.08)';
+        }, 600);
+    }
+
+    // Add vibration on mobile devices (if supported)
+    if ('vibrate' in navigator) {
+        // Vibrate pattern: vibrate for 200ms, pause 100ms, vibrate 200ms
+        navigator.vibrate([200, 100, 200]);
     }
 }
 
