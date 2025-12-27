@@ -366,11 +366,11 @@ h1 {
 
 /* Large circle design (default for desktop/tablet) */
 .timer-large-design {
-    display: block;
+    display: block !important;
 }
 
 .timer-small-design {
-    display: none;
+    display: none !important;
 }
 
 .timer-circle {
@@ -533,11 +533,11 @@ h1 {
 @media (max-width: 600px) {
     /* Switch to small circle design on mobile */
     .timer-large-design {
-        display: none;
+        display: none !important;
     }
 
     .timer-small-design {
-        display: flex;
+        display: flex !important;
     }
 }
 
