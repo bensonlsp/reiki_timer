@@ -35,18 +35,40 @@ function initAudioContext() {
 }
 
 // Play healing bell sound using Web Audio API
-function playBellSound() {
+async function playBellSound() {
     try {
-        initAudioContext();
+        if (!audioContext) {
+            initAudioContext();
+        }
 
         if (!audioContext) {
             console.error('AudioContext not initialized');
             return;
         }
 
-        // Resume AudioContext if it was suspended (important for background tabs)
+        // Resume AudioContext if it was suspended (important for mobile and background tabs)
         if (audioContext.state === 'suspended') {
-            audioContext.resume();
+            try {
+                await audioContext.resume();
+                console.log('AudioContext resumed successfully');
+            } catch (err) {
+                console.error('Failed to resume AudioContext:', err);
+                return;
+            }
+        }
+
+        playBellTones();
+    } catch (error) {
+        console.error('Error playing bell sound:', error);
+    }
+}
+
+// Play the actual bell tones
+function playBellTones() {
+    try {
+        if (!audioContext) {
+            console.error('AudioContext not available');
+            return;
         }
 
         const now = audioContext.currentTime;
@@ -95,7 +117,7 @@ function playBellSound() {
 
         console.log('Bell sound played, AudioContext state:', audioContext.state);
     } catch (error) {
-        console.error('Error playing bell sound:', error);
+        console.error('Error playing bell tones:', error);
     }
 }
 
@@ -163,8 +185,19 @@ function startSession() {
     timeRemaining = totalTime;
     isPaused = false;
 
-    // Initialize audio context for bell sounds (needs user interaction)
+    // Initialize and test audio on user interaction (critical for mobile)
     initAudioContext();
+
+    // Play a very brief silent sound to unlock audio on mobile browsers
+    if (audioContext) {
+        const buffer = audioContext.createBuffer(1, 1, 22050);
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioContext.destination);
+        source.start(0);
+
+        console.log('Audio unlocked, AudioContext state:', audioContext.state);
+    }
 
     document.getElementById('setupScreen').classList.add('hidden');
     document.getElementById('timerScreen').classList.remove('hidden');
@@ -207,9 +240,9 @@ function updateDisplay() {
     const overallProgress = ((currentPosition * totalTime) + (totalTime - timeRemaining)) / (positions.length * totalTime) * 100;
     document.getElementById('progressFill').style.width = `${overallProgress}%`;
 
-    // Update circle progress
+    // Update circle progress (radius = 54 for new smaller circle)
     const circleProgress = (totalTime - timeRemaining) / totalTime;
-    const circumference = 2 * Math.PI * 130;
+    const circumference = 2 * Math.PI * 54;
     const offset = circumference * (1 - circleProgress);
     document.getElementById('circleProgress').style.strokeDashoffset = offset;
 }

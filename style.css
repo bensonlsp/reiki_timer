@@ -44,14 +44,19 @@ body {
         margin-bottom: 24px;
     }
 
-    .timer-circle {
-        width: 200px;
-        height: 200px;
-        margin: 0 auto 24px;
+    .timer-display-area {
+        margin: 0 auto 28px;
+        padding: 16px;
+        gap: 16px;
     }
 
-    .timer-text {
-        font-size: 42px;
+    .timer-large-text {
+        font-size: 52px;
+    }
+
+    .timer-circle-small {
+        width: 90px;
+        height: 90px;
     }
 }
 
@@ -347,42 +352,51 @@ h1 {
     color: #2c2c2c;
 }
 
-.timer-circle {
-    position: relative;
-    width: 280px;
-    height: 280px;
+.timer-display-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
     margin: 0 auto 40px;
+    padding: 20px;
 }
 
-.circle-svg {
+.timer-large-text {
+    font-size: 72px;
+    font-weight: 200;
+    color: #2c2c2c;
+    letter-spacing: 4px;
+    line-height: 1;
+}
+
+.timer-circle-small {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+.circle-svg-small {
     transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 .circle-bg {
     fill: none;
     stroke: #f0ebe3;
-    stroke-width: 8;
+    stroke-width: 6;
 }
 
 .circle-progress {
     fill: none;
     stroke: #6b8e7f;
-    stroke-width: 8;
+    stroke-width: 6;
     stroke-linecap: round;
-    stroke-dasharray: 817;
+    stroke-dasharray: 339.292;
     stroke-dashoffset: 0;
     transition: stroke-dashoffset 1s linear;
-}
-
-.timer-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 56px;
-    font-weight: 200;
-    color: #2c2c2c;
-    letter-spacing: 2px;
 }
 
 .controls {
@@ -613,19 +627,26 @@ h1 {
         font-size: 20px;
     }
 
-    .timer-circle {
-        width: 220px;
-        height: 220px;
-        margin: 0 auto 24px;
+    .timer-display-area {
+        flex-direction: column;
+        gap: 16px;
+        margin: 0 auto 32px;
+        padding: 16px;
     }
 
-    .timer-text {
-        font-size: 44px;
+    .timer-large-text {
+        font-size: 56px;
+    }
+
+    .timer-circle-small {
+        width: 100px;
+        height: 100px;
     }
 
     .controls {
         flex-wrap: wrap;
         gap: 10px;
+        margin-bottom: 0;
     }
 
     .secondary-controls {
@@ -635,6 +656,8 @@ h1 {
     .control-btn {
         font-size: 13px;
         padding: 10px 16px;
+        flex: 1;
+        min-width: 100px;
     }
 
     .completion-content {
@@ -681,13 +704,20 @@ h1 {
         font-size: 24px;
     }
 
-    .timer-circle {
-        width: 200px;
-        height: 200px;
+    .timer-display-area {
+        flex-direction: column;
+        gap: 12px;
+        margin: 0 auto 24px;
+        padding: 12px;
     }
 
-    .timer-text {
-        font-size: 40px;
+    .timer-large-text {
+        font-size: 48px;
+    }
+
+    .timer-circle-small {
+        width: 80px;
+        height: 80px;
     }
 
     .position-name {
@@ -746,21 +776,35 @@ h1 {
         padding-left: 28px;
     }
 
-    .timer-circle {
-        width: 180px;
-        height: 180px;
-        margin: 0 auto 16px;
+    .timer-display-area {
+        flex-direction: column;
+        gap: 12px;
+        margin: 0 auto 20px;
+        padding: 10px;
     }
 
-    .timer-text {
-        font-size: 36px;
+    .timer-large-text {
+        font-size: 44px;
+    }
+
+    .timer-circle-small {
+        width: 70px;
+        height: 70px;
     }
 
     .position-info {
-        margin-bottom: 16px;
+        margin-bottom: 12px;
     }
 
     .progress-bar {
-        margin-bottom: 16px;
+        margin-bottom: 12px;
+    }
+
+    .controls {
+        gap: 8px;
+    }
+
+    .secondary-controls {
+        margin-top: 8px;
     }
 }
