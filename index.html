@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臼井靈氣十二手式 - 自我療癒計時器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>臼井靈氣</h1>
+            <p class="subtitle">十二手式自我療癒</p>
+        </header>
+
+        <div class="setup-screen" id="setupScreen">
+            <div class="time-selector">
+                <label>每個手式時間</label>
+                <div class="time-row">
+                    <div class="time-controls">
+                        <button class="time-btn" onclick="adjustMinutes(-1)">−</button>
+                        <div class="time-unit">
+                            <span class="time-display" id="minutesDisplay">0</span>
+                            <span class="time-label">分鐘</span>
+                        </div>
+                        <button class="time-btn" onclick="adjustMinutes(1)">+</button>
+                    </div>
+                    <div class="time-controls">
+                        <button class="time-btn" onclick="adjustSeconds(-10)">−</button>
+                        <div class="time-unit">
+                            <span class="time-display" id="secondsDisplay">30</span>
+                            <span class="time-label">秒</span>
+                        </div>
+                        <button class="time-btn" onclick="adjustSeconds(10)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="music-selector">
+                <h3 class="music-title">背景音樂建議</h3>
+                <p class="music-description">建議在另一個視窗播放療癒音樂，然後回到此頁面開始療癒</p>
+                <button class="open-youtube-btn" onclick="openYouTubeMusic()">
+                    <span class="youtube-icon">▶</span>
+                    在新視窗打開 YouTube 音樂
+                </button>
+                <p class="music-hint">音樂將在新視窗播放，你可以隨時切換回來繼續療癒</p>
+            </div>
+
+            <div class="positions-preview">
+                <h3>十二手式</h3>
+                <ol class="positions-list">
+                    <li>前額（第三眼）</li>
+                    <li>左右雙耳</li>
+                    <li>後腦（後腦勺）</li>
+                    <li>喉嚨</li>
+                    <li>心臟</li>
+                    <li>太陽輪（胃部）</li>
+                    <li>臍輪（丹田/腹部）</li>
+                    <li>底輪（前面）</li>
+                    <li>左右肩膀</li>
+                    <li>胃輪（背面）</li>
+                    <li>臍輪（背面）</li>
+                    <li>底輪（背面）</li>
+                </ol>
+            </div>
+
+            <button class="start-btn" onclick="startSession()">開始療癒</button>
+        </div>
+
+        <div class="timer-screen hidden" id="timerScreen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <div class="position-info">
+                <div class="position-number" id="positionNumber">1 / 12</div>
+                <h2 class="position-name" id="positionName">頭頂（百會）</h2>
+            </div>
+
+            <div class="timer-circle">
+                <svg width="280" height="280" class="circle-svg">
+                    <circle cx="140" cy="140" r="130" class="circle-bg"></circle>
+                    <circle cx="140" cy="140" r="130" class="circle-progress" id="circleProgress"></circle>
+                </svg>
+                <div class="timer-text" id="timerText">3:00</div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" onclick="pauseTimer()" id="pauseBtn">暫停</button>
+                <button class="control-btn secondary" onclick="skipPosition()">跳過</button>
+            </div>
+            <div class="controls secondary-controls">
+                <button class="control-btn secondary" onclick="resetSession()">重新開始</button>
+                <button class="control-btn secondary" onclick="backToHome()">回到首頁</button>
+            </div>
+        </div>
+
+        <div class="completion-screen hidden" id="completionScreen">
+            <div class="completion-content">
+                <div class="completion-icon">🙏</div>
+                <h2>療癒完成</h2>
+                <p>願你充滿光與愛</p>
+                <button class="start-btn" onclick="resetToSetup()">再次療癒</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
