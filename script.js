@@ -24,8 +24,8 @@ let timerInterval = null;
 let isPaused = false;
 let audioContext = null;
 
-// YouTube music URL
-const YOUTUBE_MUSIC_URL = 'https://www.youtube.com/watch?v=M5DbYStWpBY';
+// YouTube music playlist URL (with shuffle enabled)
+const YOUTUBE_MUSIC_URL = 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&shuffle=1';
 
 // Initialize audio context
 function initAudioContext() {
