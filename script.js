@@ -24,100 +24,60 @@ let timerInterval = null;
 let isPaused = false;
 let audioContext = null;
 
+// HTML5 Audio for bell sound (better mobile compatibility)
+let bellAudio = null;
+
 // YouTube music playlist URL (with shuffle enabled)
 const YOUTUBE_MUSIC_URL = 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&shuffle=1';
 
-// Initialize audio context
+// Initialize audio for bell sound
+function initBellAudio() {
+    if (!bellAudio) {
+        bellAudio = new Audio('476871__ancientoracle__bowl-bell-1-one-hit-fade.wav');
+        bellAudio.preload = 'auto';
+        bellAudio.volume = 0.8; // Adjust volume (0.0 to 1.0)
+        console.log('Bell audio initialized');
+    }
+}
+
+// Legacy: Initialize audio context (kept for compatibility)
 function initAudioContext() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 }
 
-// Play healing bell sound using Web Audio API
+// Play healing bell sound using HTML5 Audio
 async function playBellSound() {
     try {
-        if (!audioContext) {
-            initAudioContext();
+        // Initialize audio if not already done
+        if (!bellAudio) {
+            initBellAudio();
         }
 
-        if (!audioContext) {
-            console.error('AudioContext not initialized');
-            return;
-        }
+        // Reset and play the audio
+        bellAudio.currentTime = 0;
 
-        // Resume AudioContext if it was suspended (important for mobile and background tabs)
-        if (audioContext.state === 'suspended') {
-            try {
-                await audioContext.resume();
-                console.log('AudioContext resumed successfully');
-            } catch (err) {
-                console.error('Failed to resume AudioContext:', err);
-                return;
-            }
-        }
+        // Play with error handling for mobile browsers
+        const playPromise = bellAudio.play();
 
-        playBellTones();
+        if (playPromise !== undefined) {
+            playPromise
+                .then(() => {
+                    console.log('Bell sound played successfully');
+                    // Add visual feedback
+                    flashScreen();
+                })
+                .catch(error => {
+                    console.error('Error playing bell sound:', error);
+                    // Still show visual feedback even if sound fails
+                    flashScreen();
+                });
+        }
     } catch (error) {
-        console.error('Error playing bell sound:', error);
-    }
-}
-
-// Play the actual bell tones
-function playBellTones() {
-    try {
-        if (!audioContext) {
-            console.error('AudioContext not available');
-            return;
-        }
-
-        const now = audioContext.currentTime;
-
-        // Create oscillators for a bell-like sound with increased volume
-        const frequencies = [800, 1000, 1200, 1600];
-
-        frequencies.forEach((freq, index) => {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.value = freq;
-            oscillator.type = 'sine';
-
-            // Create envelope for bell sound with higher volume
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.6 / (index + 1), now + 0.01);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 2.5);
-
-            oscillator.start(now);
-            oscillator.stop(now + 2.5);
-        });
-
-        // Add a stronger lower frequency for depth
-        const bass = audioContext.createOscillator();
-        const bassGain = audioContext.createGain();
-
-        bass.connect(bassGain);
-        bassGain.connect(audioContext.destination);
-
-        bass.frequency.value = 200;
-        bass.type = 'sine';
-
-        bassGain.gain.setValueAtTime(0, now);
-        bassGain.gain.linearRampToValueAtTime(0.4, now + 0.01);
-        bassGain.gain.exponentialRampToValueAtTime(0.01, now + 3);
-
-        bass.start(now);
-        bass.stop(now + 3);
-
-        // Add visual feedback
+        console.error('Error in playBellSound:', error);
+        // Fallback to visual feedback only
         flashScreen();
-
-        console.log('Bell sound played, AudioContext state:', audioContext.state);
-    } catch (error) {
-        console.error('Error playing bell tones:', error);
     }
 }
 
@@ -185,18 +145,26 @@ function startSession() {
     timeRemaining = totalTime;
     isPaused = false;
 
-    // Initialize and test audio on user interaction (critical for mobile)
-    initAudioContext();
+    // Initialize bell audio on user interaction (critical for mobile autoplay policy)
+    initBellAudio();
 
-    // Play a very brief silent sound to unlock audio on mobile browsers
-    if (audioContext) {
-        const buffer = audioContext.createBuffer(1, 1, 22050);
-        const source = audioContext.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audioContext.destination);
-        source.start(0);
-
-        console.log('Audio unlocked, AudioContext state:', audioContext.state);
+    // Pre-load audio by attempting a silent play (helps with mobile compatibility)
+    if (bellAudio) {
+        bellAudio.volume = 0;
+        const playPromise = bellAudio.play();
+        if (playPromise !== undefined) {
+            playPromise
+                .then(() => {
+                    bellAudio.pause();
+                    bellAudio.currentTime = 0;
+                    bellAudio.volume = 0.8; // Restore volume
+                    console.log('Bell audio unlocked successfully');
+                })
+                .catch(err => {
+                    console.log('Bell audio preload attempt:', err.message);
+                    bellAudio.volume = 0.8; // Restore volume anyway
+                });
+        }
     }
 
     document.getElementById('setupScreen').classList.add('hidden');
