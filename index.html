@@ -82,12 +82,22 @@
                 <h2 class="position-name" id="positionName">頭頂（百會）</h2>
             </div>
 
-            <div class="timer-display-area">
-                <div class="timer-large-text" id="timerText">3:00</div>
+            <!-- Large circle design for desktop/tablet -->
+            <div class="timer-circle timer-large-design">
+                <svg viewBox="0 0 280 280" class="circle-svg">
+                    <circle cx="140" cy="140" r="130" class="circle-bg"></circle>
+                    <circle cx="140" cy="140" r="130" class="circle-progress" id="circleProgressLarge"></circle>
+                </svg>
+                <div class="timer-text" id="timerTextLarge">3:00</div>
+            </div>
+
+            <!-- Small circle design for mobile -->
+            <div class="timer-display-area timer-small-design">
+                <div class="timer-large-text" id="timerTextSmall">3:00</div>
                 <div class="timer-circle-small">
                     <svg viewBox="0 0 120 120" class="circle-svg-small">
                         <circle cx="60" cy="60" r="54" class="circle-bg"></circle>
-                        <circle cx="60" cy="60" r="54" class="circle-progress" id="circleProgress"></circle>
+                        <circle cx="60" cy="60" r="54" class="circle-progress" id="circleProgressSmall"></circle>
                     </svg>
                 </div>
             </div>

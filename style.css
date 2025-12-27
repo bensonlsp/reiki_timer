@@ -44,17 +44,29 @@ body {
         margin-bottom: 24px;
     }
 
-    .timer-display-area {
+    /* Use smaller large circle on height-constrained screens */
+    .timer-large-design .timer-circle {
+        width: 220px;
+        height: 220px;
+        margin: 0 auto 28px;
+    }
+
+    .timer-large-design .timer-text {
+        font-size: 48px;
+    }
+
+    /* Small design adjustments if applicable */
+    .timer-small-design.timer-display-area {
         margin: 0 auto 28px;
         padding: 16px;
         gap: 16px;
     }
 
-    .timer-large-text {
+    .timer-small-design .timer-large-text {
         font-size: 52px;
     }
 
-    .timer-circle-small {
+    .timer-small-design .timer-circle-small {
         width: 90px;
         height: 90px;
     }
@@ -352,6 +364,41 @@ h1 {
     color: #2c2c2c;
 }
 
+/* Large circle design (default for desktop/tablet) */
+.timer-large-design {
+    display: block;
+}
+
+.timer-small-design {
+    display: none;
+}
+
+.timer-circle {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    margin: 0 auto 40px;
+}
+
+.circle-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.timer-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 56px;
+    font-weight: 200;
+    color: #2c2c2c;
+    letter-spacing: 2px;
+}
+
+/* Small circle design (for mobile) */
 .timer-display-area {
     display: flex;
     align-items: center;
@@ -386,15 +433,15 @@ h1 {
 .circle-bg {
     fill: none;
     stroke: #f0ebe3;
-    stroke-width: 6;
+    stroke-width: 8;
 }
 
 .circle-progress {
     fill: none;
     stroke: #6b8e7f;
-    stroke-width: 6;
+    stroke-width: 8;
     stroke-linecap: round;
-    stroke-dasharray: 339.292;
+    stroke-dasharray: 817;
     stroke-dashoffset: 0;
     transition: stroke-dashoffset 1s linear;
 }
@@ -483,6 +530,17 @@ h1 {
 }
 
 /* Responsive */
+@media (max-width: 600px) {
+    /* Switch to small circle design on mobile */
+    .timer-large-design {
+        display: none;
+    }
+
+    .timer-small-design {
+        display: flex;
+    }
+}
+
 @media (max-width: 480px) {
     body {
         padding: 10px;
@@ -627,18 +685,19 @@ h1 {
         font-size: 20px;
     }
 
-    .timer-display-area {
+    /* Small design adjustments for mobile */
+    .timer-small-design.timer-display-area {
         flex-direction: column;
         gap: 16px;
         margin: 0 auto 32px;
         padding: 16px;
     }
 
-    .timer-large-text {
+    .timer-small-design .timer-large-text {
         font-size: 56px;
     }
 
-    .timer-circle-small {
+    .timer-small-design .timer-circle-small {
         width: 100px;
         height: 100px;
     }
@@ -704,18 +763,18 @@ h1 {
         font-size: 24px;
     }
 
-    .timer-display-area {
+    .timer-small-design.timer-display-area {
         flex-direction: column;
         gap: 12px;
         margin: 0 auto 24px;
         padding: 12px;
     }
 
-    .timer-large-text {
+    .timer-small-design .timer-large-text {
         font-size: 48px;
     }
 
-    .timer-circle-small {
+    .timer-small-design .timer-circle-small {
         width: 80px;
         height: 80px;
     }
@@ -776,18 +835,18 @@ h1 {
         padding-left: 28px;
     }
 
-    .timer-display-area {
+    .timer-small-design.timer-display-area {
         flex-direction: column;
         gap: 12px;
         margin: 0 auto 20px;
         padding: 10px;
     }
 
-    .timer-large-text {
+    .timer-small-design .timer-large-text {
         font-size: 44px;
     }
 
-    .timer-circle-small {
+    .timer-small-design .timer-circle-small {
         width: 70px;
         height: 70px;
     }

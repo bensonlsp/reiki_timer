@@ -233,18 +233,28 @@ function updateDisplay() {
     // Update timer text
     const minutes = Math.floor(timeRemaining / 60);
     const seconds = timeRemaining % 60;
-    document.getElementById('timerText').textContent =
-        `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const timeText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+    // Update both timer displays (large and small)
+    document.getElementById('timerTextLarge').textContent = timeText;
+    document.getElementById('timerTextSmall').textContent = timeText;
 
     // Update progress bar
     const overallProgress = ((currentPosition * totalTime) + (totalTime - timeRemaining)) / (positions.length * totalTime) * 100;
     document.getElementById('progressFill').style.width = `${overallProgress}%`;
 
-    // Update circle progress (radius = 54 for new smaller circle)
+    // Update both circle progress indicators
     const circleProgress = (totalTime - timeRemaining) / totalTime;
-    const circumference = 2 * Math.PI * 54;
-    const offset = circumference * (1 - circleProgress);
-    document.getElementById('circleProgress').style.strokeDashoffset = offset;
+
+    // Large circle (radius = 130)
+    const circumferenceLarge = 2 * Math.PI * 130;
+    const offsetLarge = circumferenceLarge * (1 - circleProgress);
+    document.getElementById('circleProgressLarge').style.strokeDashoffset = offsetLarge;
+
+    // Small circle (radius = 54)
+    const circumferenceSmall = 2 * Math.PI * 54;
+    const offsetSmall = circumferenceSmall * (1 - circleProgress);
+    document.getElementById('circleProgressSmall').style.strokeDashoffset = offsetSmall;
 }
 
 // Complete current position
