@@ -118,6 +118,37 @@ function toggleBellSound() {
     toggleBtn.classList.toggle('off', !bellEnabled);
 }
 
+// Preview bell sound
+function previewBellSound() {
+    // Initialize audio if not already done
+    if (!bellAudio) {
+        initBellAudio();
+    }
+
+    // Update volume and play
+    bellAudio.volume = bellVolume;
+    bellAudio.currentTime = 0;
+
+    const playPromise = bellAudio.play();
+    if (playPromise !== undefined) {
+        playPromise
+            .then(() => {
+                console.log('Preview bell sound played');
+                // Visual feedback
+                const previewBtn = document.querySelector('.preview-btn');
+                if (previewBtn) {
+                    previewBtn.classList.add('playing');
+                    setTimeout(() => {
+                        previewBtn.classList.remove('playing');
+                    }, 1000);
+                }
+            })
+            .catch(error => {
+                console.error('Error playing preview:', error);
+            });
+    }
+}
+
 // Legacy: Initialize audio context (kept for compatibility)
 function initAudioContext() {
     if (!audioContext) {

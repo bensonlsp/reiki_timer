@@ -237,6 +237,58 @@ h1 {
     background: #bbb;
 }
 
+/* Preview button */
+.preview-btn {
+    padding: 6px 10px;
+    background: #e8e3d8;
+    color: #666;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.preview-btn:hover {
+    background: #d4cfc4;
+    color: #4a4a4a;
+}
+
+.preview-btn.playing {
+    background: #6b8e7f;
+    color: #fff;
+}
+
+/* Mobile music warning */
+.mobile-music-warning {
+    display: none;
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #fff8e6;
+    border: 1px solid #f0e0b0;
+    border-radius: 8px;
+    font-size: 11px;
+    color: #8a7340;
+    line-height: 1.5;
+}
+
+.mobile-music-warning .warning-icon {
+    margin-right: 6px;
+}
+
+/* Show warning only on mobile */
+@media (max-width: 600px) {
+    .mobile-music-warning {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .mobile-music-warning .warning-icon {
+        flex-shrink: 0;
+    }
+}
+
 .volume-control {
     display: flex;
     align-items: center;
@@ -892,7 +944,12 @@ h1 {
 
     .audio-control-actions {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+    .preview-btn {
+        padding: 6px 12px;
     }
 
     .volume-control {

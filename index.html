@@ -69,6 +69,7 @@
                     </div>
                     <div class="audio-control-actions">
                         <button class="toggle-btn" id="bellToggle" onclick="toggleBellSound()">開</button>
+                        <button class="preview-btn" onclick="previewBellSound()" title="試聽">▶</button>
                         <div class="volume-control">
                             <input type="range" id="bellVolumeSlider" min="0" max="100" value="80" oninput="setBellVolume(this.value)">
                             <span class="volume-value" id="bellVolumeValue">80%</span>
@@ -85,6 +86,12 @@
                     <div class="audio-control-actions">
                         <button class="toggle-btn off" id="bgMusicToggle" onclick="toggleBgMusic()">關</button>
                     </div>
+                </div>
+
+                <!-- Mobile Warning -->
+                <div class="mobile-music-warning" id="mobileMusicWarning">
+                    <span class="warning-icon">📱</span>
+                    <span>手機用戶請注意：由於系統限制，頌缽聲可能會中斷背景音樂。建議使用電腦以獲得最佳體驗，或關閉頌缽提示音。</span>
                 </div>
 
                 <!-- YouTube Embed (hidden by default) -->
