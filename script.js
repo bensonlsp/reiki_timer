@@ -1,5 +1,5 @@
-// Reiki positions data
-const positions = [
+// Reiki positions data - Full 12 positions
+const fullPositions = [
     '前額（第三眼）',
     '左右雙耳',
     '後腦（後腦勺）',
@@ -14,6 +14,21 @@ const positions = [
     '底輪（背面）'
 ];
 
+// Chakra activation - 7 main chakras (from crown to root)
+const chakraPositions = [
+    '頂輪（頭頂/百會）',
+    '眉心輪（第三眼）',
+    '喉輪（喉嚨）',
+    '心輪（心臟）',
+    '太陽輪（胃部）',
+    '臍輪（丹田）',
+    '海底輪（底輪）'
+];
+
+// Current active positions (will be set based on mode selection)
+let positions = fullPositions;
+let currentMode = 'full'; // 'full' or 'chakra'
+
 // State
 let minutes = 0;
 let seconds = 30;
@@ -24,8 +39,20 @@ let timerInterval = null;
 let isPaused = false;
 let audioContext = null;
 
+// Audio settings
+let bellVolume = 0.8;
+let bellEnabled = true;
+let bgMusicVolume = 0.5;
+let bgMusicEnabled = false;
+
 // HTML5 Audio for bell sound (better mobile compatibility)
 let bellAudio = null;
+let bgMusicAudio = null;
+
+// Background music options (royalty-free meditation music)
+const bgMusicOptions = [
+    { name: '靜心冥想', file: null, youtube: 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&shuffle=1' }
+];
 
 // YouTube music playlist URL (with shuffle enabled)
 const YOUTUBE_MUSIC_URL = 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&shuffle=1';
@@ -35,9 +62,60 @@ function initBellAudio() {
     if (!bellAudio) {
         bellAudio = new Audio('476871__ancientoracle__bowl-bell-1-one-hit-fade.wav');
         bellAudio.preload = 'auto';
-        bellAudio.volume = 0.8; // Adjust volume (0.0 to 1.0)
+        bellAudio.volume = bellVolume;
         console.log('Bell audio initialized');
     }
+}
+
+// Mode selection functions
+function selectMode(mode) {
+    currentMode = mode;
+
+    // Update positions based on mode
+    if (mode === 'full') {
+        positions = fullPositions;
+    } else if (mode === 'chakra') {
+        positions = chakraPositions;
+    }
+
+    // Update UI to show selected mode
+    document.querySelectorAll('.mode-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    document.querySelector(`[data-mode="${mode}"]`).classList.add('selected');
+
+    // Update positions preview
+    updatePositionsPreview();
+}
+
+function updatePositionsPreview() {
+    const previewList = document.getElementById('positionsPreviewList');
+    const previewTitle = document.getElementById('positionsPreviewTitle');
+
+    if (currentMode === 'full') {
+        previewTitle.textContent = '十二手式';
+    } else {
+        previewTitle.textContent = '七脈輪';
+    }
+
+    previewList.innerHTML = positions.map(pos => `<li>${pos}</li>`).join('');
+}
+
+// Bell volume control
+function setBellVolume(value) {
+    bellVolume = value / 100;
+    if (bellAudio) {
+        bellAudio.volume = bellVolume;
+    }
+    document.getElementById('bellVolumeValue').textContent = value + '%';
+}
+
+// Toggle bell sound
+function toggleBellSound() {
+    bellEnabled = !bellEnabled;
+    const toggleBtn = document.getElementById('bellToggle');
+    toggleBtn.textContent = bellEnabled ? '開' : '關';
+    toggleBtn.classList.toggle('off', !bellEnabled);
 }
 
 // Legacy: Initialize audio context (kept for compatibility)
@@ -49,11 +127,23 @@ function initAudioContext() {
 
 // Play healing bell sound using HTML5 Audio
 async function playBellSound() {
+    // Always show visual feedback
+    flashScreen();
+
+    // Check if bell sound is enabled
+    if (!bellEnabled) {
+        console.log('Bell sound is disabled');
+        return;
+    }
+
     try {
         // Initialize audio if not already done
         if (!bellAudio) {
             initBellAudio();
         }
+
+        // Update volume
+        bellAudio.volume = bellVolume;
 
         // Reset and play the audio
         bellAudio.currentTime = 0;
@@ -65,19 +155,13 @@ async function playBellSound() {
             playPromise
                 .then(() => {
                     console.log('Bell sound played successfully');
-                    // Add visual feedback
-                    flashScreen();
                 })
                 .catch(error => {
                     console.error('Error playing bell sound:', error);
-                    // Still show visual feedback even if sound fails
-                    flashScreen();
                 });
         }
     } catch (error) {
         console.error('Error in playBellSound:', error);
-        // Fallback to visual feedback only
-        flashScreen();
     }
 }
 
@@ -157,12 +241,12 @@ function startSession() {
                 .then(() => {
                     bellAudio.pause();
                     bellAudio.currentTime = 0;
-                    bellAudio.volume = 0.8; // Restore volume
+                    bellAudio.volume = bellVolume; // Restore volume
                     console.log('Bell audio unlocked successfully');
                 })
                 .catch(err => {
                     console.log('Bell audio preload attempt:', err.message);
-                    bellAudio.volume = 0.8; // Restore volume anyway
+                    bellAudio.volume = bellVolume; // Restore volume anyway
                 });
         }
     }
@@ -300,3 +384,55 @@ function backToHome() {
 function openYouTubeMusic() {
     window.open(YOUTUBE_MUSIC_URL, '_blank', 'noopener,noreferrer');
 }
+
+// Background music controls
+function initBgMusic() {
+    // For now, we'll use an embedded YouTube iframe approach
+    // or allow users to select from built-in options
+}
+
+function toggleBgMusic() {
+    bgMusicEnabled = !bgMusicEnabled;
+    const toggleBtn = document.getElementById('bgMusicToggle');
+
+    toggleBtn.textContent = bgMusicEnabled ? '開' : '關';
+    toggleBtn.classList.toggle('off', !bgMusicEnabled);
+
+    // Show/hide YouTube embed and external button
+    const youtubeEmbed = document.getElementById('youtubeEmbed');
+    const youtubeExternal = document.getElementById('youtubeExternal');
+
+    if (youtubeEmbed) {
+        youtubeEmbed.style.display = bgMusicEnabled ? 'block' : 'none';
+    }
+    if (youtubeExternal) {
+        youtubeExternal.style.display = bgMusicEnabled ? 'none' : 'block';
+    }
+}
+
+function setBgMusicVolume(value) {
+    bgMusicVolume = value / 100;
+    document.getElementById('bgMusicVolumeValue').textContent = value + '%';
+    // Note: YouTube iframe volume cannot be controlled directly via JavaScript
+    // This is just for UI feedback
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default mode
+    selectMode('full');
+
+    // Initialize volume displays
+    const bellVolumeSlider = document.getElementById('bellVolumeSlider');
+    const bgMusicVolumeSlider = document.getElementById('bgMusicVolumeSlider');
+
+    if (bellVolumeSlider) {
+        bellVolumeSlider.value = bellVolume * 100;
+        document.getElementById('bellVolumeValue').textContent = Math.round(bellVolume * 100) + '%';
+    }
+
+    if (bgMusicVolumeSlider) {
+        bgMusicVolumeSlider.value = bgMusicVolume * 100;
+        document.getElementById('bgMusicVolumeValue').textContent = Math.round(bgMusicVolume * 100) + '%';
+    }
+});

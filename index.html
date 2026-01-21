@@ -14,6 +14,27 @@
         </header>
 
         <div class="setup-screen" id="setupScreen">
+            <!-- Mode Selection -->
+            <div class="mode-selector">
+                <label>療癒模式</label>
+                <div class="mode-options">
+                    <div class="mode-option selected" data-mode="full" onclick="selectMode('full')">
+                        <div class="mode-icon">🙌</div>
+                        <div class="mode-info">
+                            <div class="mode-name">完整自我療癒</div>
+                            <div class="mode-desc">十二手式</div>
+                        </div>
+                    </div>
+                    <div class="mode-option" data-mode="chakra" onclick="selectMode('chakra')">
+                        <div class="mode-icon">🌈</div>
+                        <div class="mode-info">
+                            <div class="mode-name">脈輪啟動</div>
+                            <div class="mode-desc">七脈輪</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="time-selector">
                 <label>每個手式時間</label>
                 <div class="time-row">
@@ -36,24 +57,65 @@
                 </div>
             </div>
 
-            <div class="music-selector">
-                <h3 class="music-title">背景音樂建議</h3>
-                <div class="playlist-info">
-                    <p class="playlist-name">Harmonic Meetings</p>
-                    <p class="playlist-artist">David Hykes, Michelle Hykes, Timothy Hill</p>
+            <!-- Audio Controls -->
+            <div class="audio-controls">
+                <h3 class="audio-title">音效設定</h3>
+
+                <!-- Bell Sound Control -->
+                <div class="audio-control-row">
+                    <div class="audio-control-label">
+                        <span class="audio-icon">🔔</span>
+                        <span>頌缽提示音</span>
+                    </div>
+                    <div class="audio-control-actions">
+                        <button class="toggle-btn" id="bellToggle" onclick="toggleBellSound()">開</button>
+                        <div class="volume-control">
+                            <input type="range" id="bellVolumeSlider" min="0" max="100" value="80" oninput="setBellVolume(this.value)">
+                            <span class="volume-value" id="bellVolumeValue">80%</span>
+                        </div>
+                    </div>
                 </div>
-                <button class="open-youtube-btn" onclick="openYouTubeMusic()">
-                    <svg class="youtube-logo" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                    </svg>
-                    在新視窗隨機播放音樂
-                </button>
-                <p class="music-hint">音樂將在新視窗播放，你可以隨時切換回來繼續療癒</p>
+
+                <!-- Background Music Control -->
+                <div class="audio-control-row">
+                    <div class="audio-control-label">
+                        <span class="audio-icon">🎵</span>
+                        <span>背景音樂</span>
+                    </div>
+                    <div class="audio-control-actions">
+                        <button class="toggle-btn off" id="bgMusicToggle" onclick="toggleBgMusic()">關</button>
+                    </div>
+                </div>
+
+                <!-- YouTube Embed (hidden by default) -->
+                <div class="youtube-embed-container" id="youtubeEmbed" style="display: none;">
+                    <p class="embed-hint">背景音樂播放器（療癒時會在下方播放）</p>
+                    <iframe
+                        id="youtubePlayer"
+                        width="100%"
+                        height="80"
+                        src="https://www.youtube.com/embed/videoseries?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&autoplay=0&loop=1"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media"
+                        allowfullscreen>
+                    </iframe>
+                    <p class="embed-note">提示：開始療癒前請先按播放鍵</p>
+                </div>
+
+                <!-- Alternative: Open in new window -->
+                <div class="youtube-external" id="youtubeExternal">
+                    <button class="open-youtube-btn-small" onclick="openYouTubeMusic()">
+                        <svg class="youtube-logo-small" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                        在新視窗播放音樂
+                    </button>
+                </div>
             </div>
 
             <div class="positions-preview">
-                <h3>十二手式</h3>
-                <ol class="positions-list">
+                <h3 id="positionsPreviewTitle">十二手式</h3>
+                <ol class="positions-list" id="positionsPreviewList">
                     <li>前額（第三眼）</li>
                     <li>左右雙耳</li>
                     <li>後腦（後腦勺）</li>
