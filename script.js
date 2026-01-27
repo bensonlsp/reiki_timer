@@ -49,18 +49,38 @@ let bgMusicEnabled = false;
 let bellAudio = null;
 let bgMusicAudio = null;
 
-// YouTube Player control via postMessage
-let youtubeIframe = null;
+// YouTube Player control
+let youtubePlayer = null;
+let youtubePlayerReady = false;
 let wasPlayingBeforeBell = false;
 let youtubeIsPlaying = false;
+let currentVideoIndex = 0;
+let shuffledPlaylist = [];
 
-// Background music options (royalty-free meditation music)
-const bgMusicOptions = [
-    { name: '靜心冥想', file: null, youtube: 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&shuffle=1' }
+// Meditation music videos (individual YouTube videos for better control)
+const meditationVideos = [
+    { id: 'M5DbYStWpBY', title: 'Lines to a Great Lord' },
+    { id: 'dOekfnsDl5c', title: 'Harmonic Relation' },
+    { id: '0EuJafFSEn4', title: 'Kyrie Opening' },
+    { id: 'ePdM_WFRXyE', title: 'Foregather in the Name' },
+    { id: 'yjgujSRifX0', title: 'Kyrie Fragments' },
+    { id: 'GgXtRiNkT1U', title: 'Eleison Closing' },
+    { id: 'VU4yuaVR5XQ', title: 'Brotherhood' },
+    { id: 'ItdSEXT4ij8', title: 'Hallelyah' }
 ];
 
-// YouTube music playlist URL (with shuffle enabled)
+// YouTube music playlist URL (for external link)
 const YOUTUBE_MUSIC_URL = 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&shuffle=1';
+
+// Shuffle array using Fisher-Yates algorithm
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
 
 // Initialize audio for bell sound
 function initBellAudio() {
@@ -447,66 +467,128 @@ function openYouTubeMusic() {
     window.open(YOUTUBE_MUSIC_URL, '_blank', 'noopener,noreferrer');
 }
 
-// YouTube iframe URL with enablejsapi for postMessage control
-const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/videoseries?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin);
-
-// Initialize YouTube iframe
-function initYouTubeIframe() {
-    youtubeIframe = document.getElementById('youtubePlayer');
-    if (youtubeIframe && !youtubeIframe.src) {
-        youtubeIframe.src = YOUTUBE_EMBED_URL;
-        console.log('YouTube iframe initialized');
-    }
+// YouTube IFrame API callback - called automatically when API is ready
+function onYouTubeIframeAPIReady() {
+    console.log('YouTube IFrame API ready');
 }
 
-// Send command to YouTube iframe via postMessage
-function sendYouTubeCommand(command) {
-    if (youtubeIframe && youtubeIframe.contentWindow) {
-        try {
-            youtubeIframe.contentWindow.postMessage(JSON.stringify({
-                event: 'command',
-                func: command,
-                args: []
-            }), '*');
-            console.log('Sent YouTube command:', command);
-        } catch (e) {
-            console.log('Could not send YouTube command:', e);
+// Create YouTube player with a specific video
+function createYouTubePlayer(videoId) {
+    if (youtubePlayer) {
+        // Player exists, just load new video
+        youtubePlayer.loadVideoById(videoId);
+        return;
+    }
+
+    const playerElement = document.getElementById('youtubePlayer');
+    if (!playerElement) {
+        console.error('YouTube player element not found');
+        return;
+    }
+
+    console.log('Creating YouTube player with video:', videoId);
+
+    youtubePlayer = new YT.Player('youtubePlayer', {
+        height: '80',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+            'autoplay': 1,
+            'controls': 1,
+            'rel': 0,
+            'modestbranding': 1
+        },
+        events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange,
+            'onError': onPlayerError
         }
+    });
+}
+
+function onPlayerReady(event) {
+    console.log('YouTube player ready');
+    youtubePlayerReady = true;
+    event.target.playVideo();
+    updateNowPlaying();
+}
+
+function onPlayerStateChange(event) {
+    // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0, BUFFERING=3
+    youtubeIsPlaying = (event.data === YT.PlayerState.PLAYING);
+    console.log('YouTube state:', event.data, 'isPlaying:', youtubeIsPlaying);
+
+    // When video ends, play next random video
+    if (event.data === YT.PlayerState.ENDED) {
+        playNextVideo();
     }
 }
 
-// Check if YouTube is currently playing (tracked via user interaction)
+function onPlayerError(event) {
+    console.error('YouTube player error:', event.data);
+    // On error, try next video
+    playNextVideo();
+}
+
+// Play next video in shuffled playlist
+function playNextVideo() {
+    currentVideoIndex++;
+    if (currentVideoIndex >= shuffledPlaylist.length) {
+        // Reshuffle and start over
+        shuffledPlaylist = shuffleArray(meditationVideos);
+        currentVideoIndex = 0;
+    }
+
+    const video = shuffledPlaylist[currentVideoIndex];
+    console.log('Playing next video:', video.title);
+
+    if (youtubePlayer && youtubePlayerReady) {
+        youtubePlayer.loadVideoById(video.id);
+        updateNowPlaying();
+    }
+}
+
+// Update now playing display
+function updateNowPlaying() {
+    const nowPlayingEl = document.getElementById('nowPlaying');
+    if (nowPlayingEl && shuffledPlaylist.length > 0) {
+        const video = shuffledPlaylist[currentVideoIndex];
+        nowPlayingEl.textContent = '♪ ' + video.title;
+    }
+}
+
+// Check if YouTube is currently playing
 function isYouTubePlaying() {
     return youtubeIsPlaying && bgMusicEnabled;
 }
 
 // Pause YouTube player
 function pauseYouTube() {
-    sendYouTubeCommand('pauseVideo');
+    if (youtubePlayer && youtubePlayerReady) {
+        try {
+            youtubePlayer.pauseVideo();
+        } catch (e) {
+            console.log('Could not pause YouTube:', e);
+        }
+    }
 }
 
 // Resume YouTube player
 function resumeYouTube() {
-    sendYouTubeCommand('playVideo');
+    if (youtubePlayer && youtubePlayerReady) {
+        try {
+            youtubePlayer.playVideo();
+        } catch (e) {
+            console.log('Could not resume YouTube:', e);
+        }
+    }
 }
 
 // Background music controls
 function initBgMusic() {
-    // Listen for messages from YouTube iframe to track playing state
-    window.addEventListener('message', function(event) {
-        if (event.origin.includes('youtube.com')) {
-            try {
-                const data = JSON.parse(event.data);
-                if (data.event === 'onStateChange') {
-                    // 1 = playing, 2 = paused
-                    youtubeIsPlaying = (data.info === 1);
-                    console.log('YouTube playing state:', youtubeIsPlaying);
-                }
-            } catch (e) {
-                // Not a JSON message, ignore
-            }
-        }
-    });
+    // Shuffle the playlist on init
+    shuffledPlaylist = shuffleArray(meditationVideos);
+    currentVideoIndex = 0;
 }
 
 function toggleBgMusic() {
@@ -523,9 +605,21 @@ function toggleBgMusic() {
     if (youtubeEmbed) {
         youtubeEmbed.style.display = bgMusicEnabled ? 'block' : 'none';
 
-        // Initialize YouTube iframe when first enabled
-        if (bgMusicEnabled) {
-            initYouTubeIframe();
+        // Create YouTube player when first enabled
+        if (bgMusicEnabled && shuffledPlaylist.length > 0) {
+            const video = shuffledPlaylist[currentVideoIndex];
+            if (typeof YT !== 'undefined' && YT.Player) {
+                createYouTubePlayer(video.id);
+            } else {
+                // Wait for API to be ready
+                const checkAPI = setInterval(() => {
+                    if (typeof YT !== 'undefined' && YT.Player) {
+                        clearInterval(checkAPI);
+                        createYouTubePlayer(video.id);
+                    }
+                }, 100);
+                setTimeout(() => clearInterval(checkAPI), 10000);
+            }
         }
     }
     if (youtubeExternal) {

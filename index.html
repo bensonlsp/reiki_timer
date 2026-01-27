@@ -96,17 +96,9 @@
 
                 <!-- YouTube Embed (hidden by default) -->
                 <div class="youtube-embed-container" id="youtubeEmbed" style="display: none;">
-                    <p class="embed-hint">背景音樂播放器（療癒時會在下方播放）</p>
-                    <iframe
-                        id="youtubePlayer"
-                        width="100%"
-                        height="80"
-                        src=""
-                        frameborder="0"
-                        allow="autoplay; encrypted-media"
-                        allowfullscreen>
-                    </iframe>
-                    <p class="embed-note">提示：開始療癒前請先按播放鍵</p>
+                    <p class="embed-hint">背景音樂播放器</p>
+                    <div id="youtubePlayer"></div>
+                    <p class="now-playing" id="nowPlaying"></p>
                 </div>
 
                 <!-- Alternative: Open in new window -->
@@ -195,6 +187,7 @@
         </footer>
     </div>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="script.js"></script>
 </body>
 </html>
