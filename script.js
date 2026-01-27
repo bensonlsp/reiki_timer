@@ -52,6 +52,7 @@ let bgMusicAudio = null;
 // YouTube Player (using IFrame API for better control)
 let youtubePlayer = null;
 let youtubePlayerReady = false;
+let youtubeAPIReady = false;
 let wasPlayingBeforeBell = false;
 
 // Background music options (royalty-free meditation music)
@@ -450,29 +451,53 @@ function openYouTubeMusic() {
 // YouTube IFrame API callback - called automatically when API is ready
 function onYouTubeIframeAPIReady() {
     console.log('YouTube IFrame API ready');
-    // Player will be created when user enables background music
+    youtubeAPIReady = true;
+
+    // If background music is already enabled, create the player now
+    if (bgMusicEnabled && !youtubePlayer) {
+        createYouTubePlayer();
+    }
 }
 
 // Create YouTube player using IFrame API
 function createYouTubePlayer() {
-    if (youtubePlayer) return;
+    if (youtubePlayer) {
+        console.log('YouTube player already exists');
+        return;
+    }
 
-    youtubePlayer = new YT.Player('youtubePlayer', {
-        height: '80',
-        width: '100%',
-        playerVars: {
-            'listType': 'playlist',
-            'list': 'OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA',
-            'autoplay': 0,
-            'loop': 1,
-            'controls': 1,
-            'rel': 0
-        },
-        events: {
-            'onReady': onYouTubePlayerReady,
-            'onStateChange': onYouTubePlayerStateChange
-        }
-    });
+    const playerElement = document.getElementById('youtubePlayer');
+    if (!playerElement) {
+        console.error('YouTube player element not found');
+        return;
+    }
+
+    console.log('Creating YouTube player...');
+
+    try {
+        youtubePlayer = new YT.Player('youtubePlayer', {
+            height: '80',
+            width: '100%',
+            playerVars: {
+                'listType': 'playlist',
+                'list': 'OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA',
+                'autoplay': 0,
+                'loop': 1,
+                'controls': 1,
+                'rel': 0
+            },
+            events: {
+                'onReady': onYouTubePlayerReady,
+                'onStateChange': onYouTubePlayerStateChange,
+                'onError': function(event) {
+                    console.error('YouTube player error:', event.data);
+                }
+            }
+        });
+        console.log('YouTube player created');
+    } catch (e) {
+        console.error('Error creating YouTube player:', e);
+    }
 }
 
 function onYouTubePlayerReady(event) {
@@ -536,9 +561,24 @@ function toggleBgMusic() {
     if (youtubeEmbed) {
         youtubeEmbed.style.display = bgMusicEnabled ? 'block' : 'none';
 
-        // Create YouTube player when first enabled
-        if (bgMusicEnabled && !youtubePlayer && typeof YT !== 'undefined' && YT.Player) {
-            createYouTubePlayer();
+        // Create YouTube player when enabled
+        if (bgMusicEnabled && !youtubePlayer) {
+            if (youtubeAPIReady) {
+                createYouTubePlayer();
+            } else {
+                // API not ready yet, wait and retry
+                console.log('Waiting for YouTube API...');
+                const checkAPI = setInterval(() => {
+                    if (youtubeAPIReady) {
+                        clearInterval(checkAPI);
+                        if (bgMusicEnabled && !youtubePlayer) {
+                            createYouTubePlayer();
+                        }
+                    }
+                }, 200);
+                // Timeout after 10 seconds
+                setTimeout(() => clearInterval(checkAPI), 10000);
+            }
         }
     }
     if (youtubeExternal) {
