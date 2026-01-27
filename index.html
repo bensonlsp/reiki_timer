@@ -77,47 +77,23 @@
                     </div>
                 </div>
 
-                <!-- Background Music Control -->
+                <!-- Background Music Link -->
                 <div class="audio-control-row">
                     <div class="audio-control-label">
                         <span class="audio-icon">🎵</span>
                         <span>背景音樂</span>
                     </div>
-                    <div class="audio-control-actions">
-                        <button class="toggle-btn off" id="bgMusicToggle" onclick="toggleBgMusic()">關</button>
-                    </div>
                 </div>
 
-                <!-- Mobile Warning -->
-                <div class="mobile-music-warning" id="mobileMusicWarning">
-                    <span class="warning-icon">📱</span>
-                    <span>手機用戶請注意：頌缽聲可能會中斷背景音樂。建議二擇其一，或使用電腦以獲得最佳體驗。</span>
-                </div>
-
-                <!-- YouTube Embed (hidden by default) -->
-                <div class="youtube-embed-container" id="youtubeEmbed" style="display: none;">
-                    <p class="embed-hint">背景音樂播放器（請按播放鍵開始）</p>
-                    <iframe
-                        id="youtubePlayer"
-                        width="100%"
-                        height="152"
-                        src="https://www.youtube.com/embed/0EuJafFSEn4?si=5tUdA_RP5PeNvIqC"
-                        title="YouTube video player"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerpolicy="strict-origin-when-cross-origin"
-                        allowfullscreen>
-                    </iframe>
-                </div>
-
-                <!-- Alternative: Open in new window -->
-                <div class="youtube-external" id="youtubeExternal">
-                    <button class="open-youtube-btn-small" onclick="openYouTubeMusic()">
-                        <svg class="youtube-logo-small" viewBox="0 0 24 24" fill="currentColor">
+                <!-- YouTube External Link -->
+                <div class="youtube-external">
+                    <button class="open-youtube-btn" onclick="openYouTubeMusic()">
+                        <svg class="youtube-logo" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                         </svg>
-                        在新視窗播放音樂
+                        打開 YouTube Music 播放冥想音樂
                     </button>
+                    <p class="youtube-hint">在另一個視窗/App 播放背景音樂</p>
                 </div>
             </div>
 

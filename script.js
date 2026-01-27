@@ -42,12 +42,9 @@ let audioContext = null;
 // Audio settings
 let bellVolume = 0.8;
 let bellEnabled = true;
-let bgMusicVolume = 0.5;
-let bgMusicEnabled = false;
 
-// HTML5 Audio for bell sound (better mobile compatibility)
+// HTML5 Audio for bell sound
 let bellAudio = null;
-let bgMusicAudio = null;
 
 // YouTube music playlist URL (for external link)
 const YOUTUBE_MUSIC_URL = 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA';
@@ -411,49 +408,16 @@ function openYouTubeMusic() {
     window.open(YOUTUBE_MUSIC_URL, '_blank', 'noopener,noreferrer');
 }
 
-// Background music controls
-function toggleBgMusic() {
-    bgMusicEnabled = !bgMusicEnabled;
-    const toggleBtn = document.getElementById('bgMusicToggle');
-
-    toggleBtn.textContent = bgMusicEnabled ? '開' : '關';
-    toggleBtn.classList.toggle('off', !bgMusicEnabled);
-
-    // Show/hide YouTube embed and external button
-    const youtubeEmbed = document.getElementById('youtubeEmbed');
-    const youtubeExternal = document.getElementById('youtubeExternal');
-
-    if (youtubeEmbed) {
-        youtubeEmbed.style.display = bgMusicEnabled ? 'block' : 'none';
-    }
-    if (youtubeExternal) {
-        youtubeExternal.style.display = bgMusicEnabled ? 'none' : 'block';
-    }
-}
-
-function setBgMusicVolume(value) {
-    bgMusicVolume = value / 100;
-    document.getElementById('bgMusicVolumeValue').textContent = value + '%';
-    // Note: YouTube iframe volume cannot be controlled directly via JavaScript
-    // This is just for UI feedback
-}
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     // Set default mode
     selectMode('full');
 
-    // Initialize volume displays
+    // Initialize bell volume display
     const bellVolumeSlider = document.getElementById('bellVolumeSlider');
-    const bgMusicVolumeSlider = document.getElementById('bgMusicVolumeSlider');
-
     if (bellVolumeSlider) {
         bellVolumeSlider.value = bellVolume * 100;
         document.getElementById('bellVolumeValue').textContent = Math.round(bellVolume * 100) + '%';
-    }
-
-    if (bgMusicVolumeSlider) {
-        bgMusicVolumeSlider.value = bgMusicVolume * 100;
-        document.getElementById('bgMusicVolumeValue').textContent = Math.round(bgMusicVolume * 100) + '%';
     }
 });

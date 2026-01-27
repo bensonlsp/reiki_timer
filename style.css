@@ -475,6 +475,13 @@ h1 {
     flex-shrink: 0;
 }
 
+.youtube-hint {
+    font-size: 12px;
+    color: #888;
+    margin-top: 8px;
+    text-align: center;
+}
+
 .music-hint {
     font-size: 11px;
     color: #999;
