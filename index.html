@@ -41,7 +41,7 @@
                     <div class="time-controls">
                         <button class="time-btn" onclick="adjustMinutes(-1)">−</button>
                         <div class="time-unit">
-                            <span class="time-display" id="minutesDisplay">0</span>
+                            <span class="time-display" id="minutesDisplay">1</span>
                             <span class="time-label">分鐘</span>
                         </div>
                         <button class="time-btn" onclick="adjustMinutes(1)">+</button>
@@ -49,7 +49,7 @@
                     <div class="time-controls">
                         <button class="time-btn" onclick="adjustSeconds(-10)">−</button>
                         <div class="time-unit">
-                            <span class="time-display" id="secondsDisplay">30</span>
+                            <span class="time-display" id="secondsDisplay">0</span>
                             <span class="time-label">秒</span>
                         </div>
                         <button class="time-btn" onclick="adjustSeconds(10)">+</button>
@@ -91,21 +91,13 @@
                 <!-- Mobile Warning -->
                 <div class="mobile-music-warning" id="mobileMusicWarning">
                     <span class="warning-icon">📱</span>
-                    <span>手機用戶請注意：由於系統限制，頌缽聲可能會中斷背景音樂。建議使用電腦以獲得最佳體驗，或關閉頌缽提示音。</span>
+                    <span>手機用戶請注意：播放頌缽聲時會短暫暫停背景音樂，播放完後自動恢復。</span>
                 </div>
 
                 <!-- YouTube Embed (hidden by default) -->
                 <div class="youtube-embed-container" id="youtubeEmbed" style="display: none;">
                     <p class="embed-hint">背景音樂播放器（療癒時會在下方播放）</p>
-                    <iframe
-                        id="youtubePlayer"
-                        width="100%"
-                        height="80"
-                        src="https://www.youtube.com/embed/videoseries?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&autoplay=0&loop=1"
-                        frameborder="0"
-                        allow="autoplay; encrypted-media"
-                        allowfullscreen>
-                    </iframe>
+                    <div id="youtubePlayer"></div>
                     <p class="embed-note">提示：開始療癒前請先按播放鍵</p>
                 </div>
 
@@ -195,6 +187,7 @@
         </footer>
     </div>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="script.js"></script>
 </body>
 </html>

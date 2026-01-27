@@ -30,8 +30,8 @@ let positions = fullPositions;
 let currentMode = 'full'; // 'full' or 'chakra'
 
 // State
-let minutes = 0;
-let seconds = 30;
+let minutes = 1;
+let seconds = 0;
 let currentPosition = 0;
 let timeRemaining = 0;
 let totalTime = 0;
@@ -48,6 +48,11 @@ let bgMusicEnabled = false;
 // HTML5 Audio for bell sound (better mobile compatibility)
 let bellAudio = null;
 let bgMusicAudio = null;
+
+// YouTube Player (using IFrame API for better control)
+let youtubePlayer = null;
+let youtubePlayerReady = false;
+let wasPlayingBeforeBell = false;
 
 // Background music options (royalty-free meditation music)
 const bgMusicOptions = [
@@ -173,6 +178,15 @@ async function playBellSound() {
             initBellAudio();
         }
 
+        // Check if YouTube is playing - if so, pause it temporarily
+        wasPlayingBeforeBell = isYouTubePlaying();
+        if (wasPlayingBeforeBell) {
+            console.log('Pausing YouTube for bell sound');
+            pauseYouTube();
+            // Small delay to ensure YouTube is paused
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
         // Update volume
         bellAudio.volume = bellVolume;
 
@@ -186,13 +200,30 @@ async function playBellSound() {
             playPromise
                 .then(() => {
                     console.log('Bell sound played successfully');
+
+                    // Resume YouTube after bell sound finishes (if it was playing)
+                    if (wasPlayingBeforeBell) {
+                        // Bell sound is about 3-4 seconds, wait a bit then resume
+                        setTimeout(() => {
+                            console.log('Resuming YouTube after bell');
+                            resumeYouTube();
+                        }, 3500);
+                    }
                 })
                 .catch(error => {
                     console.error('Error playing bell sound:', error);
+                    // Resume YouTube even if bell failed
+                    if (wasPlayingBeforeBell) {
+                        resumeYouTube();
+                    }
                 });
         }
     } catch (error) {
         console.error('Error in playBellSound:', error);
+        // Resume YouTube even if there was an error
+        if (wasPlayingBeforeBell) {
+            resumeYouTube();
+        }
     }
 }
 
@@ -416,10 +447,79 @@ function openYouTubeMusic() {
     window.open(YOUTUBE_MUSIC_URL, '_blank', 'noopener,noreferrer');
 }
 
+// YouTube IFrame API callback - called automatically when API is ready
+function onYouTubeIframeAPIReady() {
+    console.log('YouTube IFrame API ready');
+    // Player will be created when user enables background music
+}
+
+// Create YouTube player using IFrame API
+function createYouTubePlayer() {
+    if (youtubePlayer) return;
+
+    youtubePlayer = new YT.Player('youtubePlayer', {
+        height: '80',
+        width: '100%',
+        playerVars: {
+            'listType': 'playlist',
+            'list': 'OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA',
+            'autoplay': 0,
+            'loop': 1,
+            'controls': 1,
+            'rel': 0
+        },
+        events: {
+            'onReady': onYouTubePlayerReady,
+            'onStateChange': onYouTubePlayerStateChange
+        }
+    });
+}
+
+function onYouTubePlayerReady(event) {
+    console.log('YouTube player ready');
+    youtubePlayerReady = true;
+}
+
+function onYouTubePlayerStateChange(event) {
+    // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0
+    console.log('YouTube player state:', event.data);
+}
+
+// Check if YouTube is currently playing
+function isYouTubePlaying() {
+    if (!youtubePlayer || !youtubePlayerReady) return false;
+    try {
+        return youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
+    } catch (e) {
+        return false;
+    }
+}
+
+// Pause YouTube player
+function pauseYouTube() {
+    if (youtubePlayer && youtubePlayerReady) {
+        try {
+            youtubePlayer.pauseVideo();
+        } catch (e) {
+            console.log('Could not pause YouTube:', e);
+        }
+    }
+}
+
+// Resume YouTube player
+function resumeYouTube() {
+    if (youtubePlayer && youtubePlayerReady) {
+        try {
+            youtubePlayer.playVideo();
+        } catch (e) {
+            console.log('Could not resume YouTube:', e);
+        }
+    }
+}
+
 // Background music controls
 function initBgMusic() {
-    // For now, we'll use an embedded YouTube iframe approach
-    // or allow users to select from built-in options
+    // YouTube player will be created via IFrame API
 }
 
 function toggleBgMusic() {
@@ -435,6 +535,11 @@ function toggleBgMusic() {
 
     if (youtubeEmbed) {
         youtubeEmbed.style.display = bgMusicEnabled ? 'block' : 'none';
+
+        // Create YouTube player when first enabled
+        if (bgMusicEnabled && !youtubePlayer && typeof YT !== 'undefined' && YT.Player) {
+            createYouTubePlayer();
+        }
     }
     if (youtubeExternal) {
         youtubeExternal.style.display = bgMusicEnabled ? 'none' : 'block';
