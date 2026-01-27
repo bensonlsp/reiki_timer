@@ -49,11 +49,10 @@ let bgMusicEnabled = false;
 let bellAudio = null;
 let bgMusicAudio = null;
 
-// YouTube Player (using IFrame API for better control)
-let youtubePlayer = null;
-let youtubePlayerReady = false;
-let youtubeAPIReady = false;
+// YouTube Player control via postMessage
+let youtubeIframe = null;
 let wasPlayingBeforeBell = false;
+let youtubeIsPlaying = false;
 
 // Background music options (royalty-free meditation music)
 const bgMusicOptions = [
@@ -448,103 +447,66 @@ function openYouTubeMusic() {
     window.open(YOUTUBE_MUSIC_URL, '_blank', 'noopener,noreferrer');
 }
 
-// YouTube IFrame API callback - called automatically when API is ready
-function onYouTubeIframeAPIReady() {
-    console.log('YouTube IFrame API ready');
-    youtubeAPIReady = true;
+// YouTube iframe URL with enablejsapi for postMessage control
+const YOUTUBE_EMBED_URL = 'https://www.youtube.com/embed/videoseries?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&enablejsapi=1&origin=' + encodeURIComponent(window.location.origin);
 
-    // If background music is already enabled, create the player now
-    if (bgMusicEnabled && !youtubePlayer) {
-        createYouTubePlayer();
+// Initialize YouTube iframe
+function initYouTubeIframe() {
+    youtubeIframe = document.getElementById('youtubePlayer');
+    if (youtubeIframe && !youtubeIframe.src) {
+        youtubeIframe.src = YOUTUBE_EMBED_URL;
+        console.log('YouTube iframe initialized');
     }
 }
 
-// Create YouTube player using IFrame API
-function createYouTubePlayer() {
-    if (youtubePlayer) {
-        console.log('YouTube player already exists');
-        return;
-    }
-
-    const playerElement = document.getElementById('youtubePlayer');
-    if (!playerElement) {
-        console.error('YouTube player element not found');
-        return;
-    }
-
-    console.log('Creating YouTube player...');
-
-    try {
-        youtubePlayer = new YT.Player('youtubePlayer', {
-            height: '80',
-            width: '100%',
-            playerVars: {
-                'listType': 'playlist',
-                'list': 'OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA',
-                'autoplay': 0,
-                'loop': 1,
-                'controls': 1,
-                'rel': 0
-            },
-            events: {
-                'onReady': onYouTubePlayerReady,
-                'onStateChange': onYouTubePlayerStateChange,
-                'onError': function(event) {
-                    console.error('YouTube player error:', event.data);
-                }
-            }
-        });
-        console.log('YouTube player created');
-    } catch (e) {
-        console.error('Error creating YouTube player:', e);
+// Send command to YouTube iframe via postMessage
+function sendYouTubeCommand(command) {
+    if (youtubeIframe && youtubeIframe.contentWindow) {
+        try {
+            youtubeIframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: command,
+                args: []
+            }), '*');
+            console.log('Sent YouTube command:', command);
+        } catch (e) {
+            console.log('Could not send YouTube command:', e);
+        }
     }
 }
 
-function onYouTubePlayerReady(event) {
-    console.log('YouTube player ready');
-    youtubePlayerReady = true;
-}
-
-function onYouTubePlayerStateChange(event) {
-    // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0
-    console.log('YouTube player state:', event.data);
-}
-
-// Check if YouTube is currently playing
+// Check if YouTube is currently playing (tracked via user interaction)
 function isYouTubePlaying() {
-    if (!youtubePlayer || !youtubePlayerReady) return false;
-    try {
-        return youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING;
-    } catch (e) {
-        return false;
-    }
+    return youtubeIsPlaying && bgMusicEnabled;
 }
 
 // Pause YouTube player
 function pauseYouTube() {
-    if (youtubePlayer && youtubePlayerReady) {
-        try {
-            youtubePlayer.pauseVideo();
-        } catch (e) {
-            console.log('Could not pause YouTube:', e);
-        }
-    }
+    sendYouTubeCommand('pauseVideo');
 }
 
 // Resume YouTube player
 function resumeYouTube() {
-    if (youtubePlayer && youtubePlayerReady) {
-        try {
-            youtubePlayer.playVideo();
-        } catch (e) {
-            console.log('Could not resume YouTube:', e);
-        }
-    }
+    sendYouTubeCommand('playVideo');
 }
 
 // Background music controls
 function initBgMusic() {
-    // YouTube player will be created via IFrame API
+    // Listen for messages from YouTube iframe to track playing state
+    window.addEventListener('message', function(event) {
+        if (event.origin.includes('youtube.com')) {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.event === 'onStateChange') {
+                    // 1 = playing, 2 = paused
+                    youtubeIsPlaying = (data.info === 1);
+                    console.log('YouTube playing state:', youtubeIsPlaying);
+                }
+            } catch (e) {
+                // Not a JSON message, ignore
+            }
+        }
+    });
 }
 
 function toggleBgMusic() {
@@ -561,24 +523,9 @@ function toggleBgMusic() {
     if (youtubeEmbed) {
         youtubeEmbed.style.display = bgMusicEnabled ? 'block' : 'none';
 
-        // Create YouTube player when enabled
-        if (bgMusicEnabled && !youtubePlayer) {
-            if (youtubeAPIReady) {
-                createYouTubePlayer();
-            } else {
-                // API not ready yet, wait and retry
-                console.log('Waiting for YouTube API...');
-                const checkAPI = setInterval(() => {
-                    if (youtubeAPIReady) {
-                        clearInterval(checkAPI);
-                        if (bgMusicEnabled && !youtubePlayer) {
-                            createYouTubePlayer();
-                        }
-                    }
-                }, 200);
-                // Timeout after 10 seconds
-                setTimeout(() => clearInterval(checkAPI), 10000);
-            }
+        // Initialize YouTube iframe when first enabled
+        if (bgMusicEnabled) {
+            initYouTubeIframe();
         }
     }
     if (youtubeExternal) {
@@ -597,6 +544,9 @@ function setBgMusicVolume(value) {
 document.addEventListener('DOMContentLoaded', function() {
     // Set default mode
     selectMode('full');
+
+    // Initialize background music listener
+    initBgMusic();
 
     // Initialize volume displays
     const bellVolumeSlider = document.getElementById('bellVolumeSlider');
