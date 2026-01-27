@@ -49,38 +49,8 @@ let bgMusicEnabled = false;
 let bellAudio = null;
 let bgMusicAudio = null;
 
-// YouTube Player control
-let youtubePlayer = null;
-let youtubePlayerReady = false;
-let wasPlayingBeforeBell = false;
-let youtubeIsPlaying = false;
-let currentVideoIndex = 0;
-let shuffledPlaylist = [];
-
-// Meditation music videos (individual YouTube videos for better control)
-const meditationVideos = [
-    { id: 'M5DbYStWpBY', title: 'Lines to a Great Lord' },
-    { id: 'dOekfnsDl5c', title: 'Harmonic Relation' },
-    { id: '0EuJafFSEn4', title: 'Kyrie Opening' },
-    { id: 'ePdM_WFRXyE', title: 'Foregather in the Name' },
-    { id: 'yjgujSRifX0', title: 'Kyrie Fragments' },
-    { id: 'GgXtRiNkT1U', title: 'Eleison Closing' },
-    { id: 'VU4yuaVR5XQ', title: 'Brotherhood' },
-    { id: 'ItdSEXT4ij8', title: 'Hallelyah' }
-];
-
 // YouTube music playlist URL (for external link)
-const YOUTUBE_MUSIC_URL = 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA&shuffle=1';
-
-// Shuffle array using Fisher-Yates algorithm
-function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-}
+const YOUTUBE_MUSIC_URL = 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA';
 
 // Initialize audio for bell sound
 function initBellAudio() {
@@ -182,7 +152,7 @@ function initAudioContext() {
 }
 
 // Play healing bell sound using HTML5 Audio
-async function playBellSound() {
+function playBellSound() {
     // Always show visual feedback
     flashScreen();
 
@@ -198,15 +168,6 @@ async function playBellSound() {
             initBellAudio();
         }
 
-        // Check if YouTube is playing - if so, pause it temporarily
-        wasPlayingBeforeBell = isYouTubePlaying();
-        if (wasPlayingBeforeBell) {
-            console.log('Pausing YouTube for bell sound');
-            pauseYouTube();
-            // Small delay to ensure YouTube is paused
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
         // Update volume
         bellAudio.volume = bellVolume;
 
@@ -220,30 +181,13 @@ async function playBellSound() {
             playPromise
                 .then(() => {
                     console.log('Bell sound played successfully');
-
-                    // Resume YouTube after bell sound finishes (if it was playing)
-                    if (wasPlayingBeforeBell) {
-                        // Bell sound is about 3-4 seconds, wait a bit then resume
-                        setTimeout(() => {
-                            console.log('Resuming YouTube after bell');
-                            resumeYouTube();
-                        }, 3500);
-                    }
                 })
                 .catch(error => {
                     console.error('Error playing bell sound:', error);
-                    // Resume YouTube even if bell failed
-                    if (wasPlayingBeforeBell) {
-                        resumeYouTube();
-                    }
                 });
         }
     } catch (error) {
         console.error('Error in playBellSound:', error);
-        // Resume YouTube even if there was an error
-        if (wasPlayingBeforeBell) {
-            resumeYouTube();
-        }
     }
 }
 
@@ -467,130 +411,7 @@ function openYouTubeMusic() {
     window.open(YOUTUBE_MUSIC_URL, '_blank', 'noopener,noreferrer');
 }
 
-// YouTube IFrame API callback - called automatically when API is ready
-function onYouTubeIframeAPIReady() {
-    console.log('YouTube IFrame API ready');
-}
-
-// Create YouTube player with a specific video
-function createYouTubePlayer(videoId) {
-    if (youtubePlayer) {
-        // Player exists, just load new video
-        youtubePlayer.loadVideoById(videoId);
-        return;
-    }
-
-    const playerElement = document.getElementById('youtubePlayer');
-    if (!playerElement) {
-        console.error('YouTube player element not found');
-        return;
-    }
-
-    console.log('Creating YouTube player with video:', videoId);
-
-    youtubePlayer = new YT.Player('youtubePlayer', {
-        height: '80',
-        width: '100%',
-        videoId: videoId,
-        playerVars: {
-            'autoplay': 1,
-            'controls': 1,
-            'rel': 0,
-            'modestbranding': 1
-        },
-        events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange,
-            'onError': onPlayerError
-        }
-    });
-}
-
-function onPlayerReady(event) {
-    console.log('YouTube player ready');
-    youtubePlayerReady = true;
-    event.target.playVideo();
-    updateNowPlaying();
-}
-
-function onPlayerStateChange(event) {
-    // YT.PlayerState: PLAYING=1, PAUSED=2, ENDED=0, BUFFERING=3
-    youtubeIsPlaying = (event.data === YT.PlayerState.PLAYING);
-    console.log('YouTube state:', event.data, 'isPlaying:', youtubeIsPlaying);
-
-    // When video ends, play next random video
-    if (event.data === YT.PlayerState.ENDED) {
-        playNextVideo();
-    }
-}
-
-function onPlayerError(event) {
-    console.error('YouTube player error:', event.data);
-    // On error, try next video
-    playNextVideo();
-}
-
-// Play next video in shuffled playlist
-function playNextVideo() {
-    currentVideoIndex++;
-    if (currentVideoIndex >= shuffledPlaylist.length) {
-        // Reshuffle and start over
-        shuffledPlaylist = shuffleArray(meditationVideos);
-        currentVideoIndex = 0;
-    }
-
-    const video = shuffledPlaylist[currentVideoIndex];
-    console.log('Playing next video:', video.title);
-
-    if (youtubePlayer && youtubePlayerReady) {
-        youtubePlayer.loadVideoById(video.id);
-        updateNowPlaying();
-    }
-}
-
-// Update now playing display
-function updateNowPlaying() {
-    const nowPlayingEl = document.getElementById('nowPlaying');
-    if (nowPlayingEl && shuffledPlaylist.length > 0) {
-        const video = shuffledPlaylist[currentVideoIndex];
-        nowPlayingEl.textContent = '♪ ' + video.title;
-    }
-}
-
-// Check if YouTube is currently playing
-function isYouTubePlaying() {
-    return youtubeIsPlaying && bgMusicEnabled;
-}
-
-// Pause YouTube player
-function pauseYouTube() {
-    if (youtubePlayer && youtubePlayerReady) {
-        try {
-            youtubePlayer.pauseVideo();
-        } catch (e) {
-            console.log('Could not pause YouTube:', e);
-        }
-    }
-}
-
-// Resume YouTube player
-function resumeYouTube() {
-    if (youtubePlayer && youtubePlayerReady) {
-        try {
-            youtubePlayer.playVideo();
-        } catch (e) {
-            console.log('Could not resume YouTube:', e);
-        }
-    }
-}
-
 // Background music controls
-function initBgMusic() {
-    // Shuffle the playlist on init
-    shuffledPlaylist = shuffleArray(meditationVideos);
-    currentVideoIndex = 0;
-}
-
 function toggleBgMusic() {
     bgMusicEnabled = !bgMusicEnabled;
     const toggleBtn = document.getElementById('bgMusicToggle');
@@ -604,23 +425,6 @@ function toggleBgMusic() {
 
     if (youtubeEmbed) {
         youtubeEmbed.style.display = bgMusicEnabled ? 'block' : 'none';
-
-        // Create YouTube player when first enabled
-        if (bgMusicEnabled && shuffledPlaylist.length > 0) {
-            const video = shuffledPlaylist[currentVideoIndex];
-            if (typeof YT !== 'undefined' && YT.Player) {
-                createYouTubePlayer(video.id);
-            } else {
-                // Wait for API to be ready
-                const checkAPI = setInterval(() => {
-                    if (typeof YT !== 'undefined' && YT.Player) {
-                        clearInterval(checkAPI);
-                        createYouTubePlayer(video.id);
-                    }
-                }, 100);
-                setTimeout(() => clearInterval(checkAPI), 10000);
-            }
-        }
     }
     if (youtubeExternal) {
         youtubeExternal.style.display = bgMusicEnabled ? 'none' : 'block';
@@ -638,9 +442,6 @@ function setBgMusicVolume(value) {
 document.addEventListener('DOMContentLoaded', function() {
     // Set default mode
     selectMode('full');
-
-    // Initialize background music listener
-    initBgMusic();
 
     // Initialize volume displays
     const bellVolumeSlider = document.getElementById('bellVolumeSlider');

@@ -91,14 +91,21 @@
                 <!-- Mobile Warning -->
                 <div class="mobile-music-warning" id="mobileMusicWarning">
                     <span class="warning-icon">📱</span>
-                    <span>手機用戶請注意：播放頌缽聲時會短暫暫停背景音樂，播放完後自動恢復。</span>
+                    <span>手機用戶請注意：頌缽聲可能會中斷背景音樂。建議二擇其一，或使用電腦以獲得最佳體驗。</span>
                 </div>
 
                 <!-- YouTube Embed (hidden by default) -->
                 <div class="youtube-embed-container" id="youtubeEmbed" style="display: none;">
-                    <p class="embed-hint">背景音樂播放器</p>
-                    <div id="youtubePlayer"></div>
-                    <p class="now-playing" id="nowPlaying"></p>
+                    <p class="embed-hint">背景音樂播放器（請按播放鍵開始）</p>
+                    <iframe
+                        id="youtubePlayer"
+                        width="100%"
+                        height="152"
+                        src="https://www.youtube.com/embed/videoseries?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media"
+                        allowfullscreen>
+                    </iframe>
                 </div>
 
                 <!-- Alternative: Open in new window -->
@@ -187,7 +194,6 @@
         </footer>
     </div>
 
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script src="script.js"></script>
 </body>
 </html>
