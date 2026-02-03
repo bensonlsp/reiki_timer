@@ -37,7 +37,6 @@ let timeRemaining = 0;
 let totalTime = 0;
 let timerInterval = null;
 let isPaused = false;
-let audioContext = null;
 
 // Audio settings
 let bellVolume = 0.8;
@@ -45,6 +44,8 @@ let bellEnabled = true;
 
 // HTML5 Audio for bell sound
 let bellAudio = null;
+let bellAudioBuffer = null; // For Web Audio API fallback
+let webAudioContext = null;
 
 // YouTube music playlist URL (for external link)
 const YOUTUBE_MUSIC_URL = 'https://youtube.com/playlist?list=OLAK5uy_kpKl1SovncvbH7phc-RP2YTvCNrjpLXKA';
@@ -57,6 +58,69 @@ function initBellAudio() {
         bellAudio.volume = bellVolume;
         console.log('Bell audio initialized');
     }
+
+    // Also initialize Web Audio API as fallback
+    initWebAudioFallback();
+}
+
+// Initialize Web Audio API as fallback for more reliable playback
+function initWebAudioFallback() {
+    if (!webAudioContext) {
+        try {
+            webAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Load audio buffer for Web Audio API
+            fetch('476871__ancientoracle__bowl-bell-1-one-hit-fade.wav')
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => webAudioContext.decodeAudioData(arrayBuffer))
+                .then(audioBuffer => {
+                    bellAudioBuffer = audioBuffer;
+                    console.log('Web Audio fallback initialized');
+                })
+                .catch(error => {
+                    console.log('Web Audio fallback init failed:', error.message);
+                });
+        } catch (error) {
+            console.log('Web Audio API not available:', error.message);
+        }
+    }
+}
+
+// Play bell using Web Audio API (more reliable when browser restricts HTML5 Audio)
+function playBellWithWebAudio() {
+    if (!webAudioContext || !bellAudioBuffer) {
+        return false;
+    }
+
+    try {
+        // Resume audio context if suspended
+        if (webAudioContext.state === 'suspended') {
+            webAudioContext.resume();
+        }
+
+        const source = webAudioContext.createBufferSource();
+        const gainNode = webAudioContext.createGain();
+
+        source.buffer = bellAudioBuffer;
+        gainNode.gain.value = bellVolume;
+
+        source.connect(gainNode);
+        gainNode.connect(webAudioContext.destination);
+
+        source.start(0);
+        console.log('Bell played via Web Audio API');
+        return true;
+    } catch (error) {
+        console.error('Web Audio playback failed:', error);
+        return false;
+    }
+}
+
+// Re-initialize audio (used when audio fails)
+function reinitializeBellAudio() {
+    console.log('Reinitializing bell audio...');
+    bellAudio = null;
+    initBellAudio();
 }
 
 // Mode selection functions
@@ -141,15 +205,8 @@ function previewBellSound() {
     }
 }
 
-// Legacy: Initialize audio context (kept for compatibility)
-function initAudioContext() {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    }
-}
-
-// Play healing bell sound using HTML5 Audio
-function playBellSound() {
+// Play healing bell sound using HTML5 Audio with fallback
+function playBellSound(retryCount = 0) {
     // Always show visual feedback
     flashScreen();
 
@@ -158,6 +215,8 @@ function playBellSound() {
         console.log('Bell sound is disabled');
         return;
     }
+
+    const maxRetries = 2;
 
     try {
         // Initialize audio if not already done
@@ -180,12 +239,54 @@ function playBellSound() {
                     console.log('Bell sound played successfully');
                 })
                 .catch(error => {
-                    console.error('Error playing bell sound:', error);
+                    console.error('Error playing bell sound (HTML5 Audio):', error);
+
+                    // Try Web Audio API as fallback
+                    console.log('Trying Web Audio API fallback...');
+                    const webAudioSuccess = playBellWithWebAudio();
+
+                    if (!webAudioSuccess && retryCount < maxRetries) {
+                        // Reinitialize and retry
+                        console.log(`Retrying... attempt ${retryCount + 1}/${maxRetries}`);
+                        reinitializeBellAudio();
+                        setTimeout(() => {
+                            playBellSound(retryCount + 1);
+                        }, 100);
+                    } else if (!webAudioSuccess) {
+                        console.error('All audio playback attempts failed');
+                        // Show visual alert to user that sound failed
+                        showAudioFailureWarning();
+                    }
                 });
         }
     } catch (error) {
         console.error('Error in playBellSound:', error);
+
+        // Try Web Audio API as fallback
+        const webAudioSuccess = playBellWithWebAudio();
+
+        if (!webAudioSuccess && retryCount < maxRetries) {
+            reinitializeBellAudio();
+            setTimeout(() => {
+                playBellSound(retryCount + 1);
+            }, 100);
+        }
     }
+}
+
+// Show warning when audio fails
+function showAudioFailureWarning() {
+    // Create a subtle visual indicator
+    const container = document.querySelector('.container');
+    if (container) {
+        container.style.transition = 'box-shadow 0.3s ease';
+        container.style.boxShadow = '0 0 40px rgba(255, 100, 100, 0.6), 0 10px 40px rgba(0, 0, 0, 0.08)';
+
+        setTimeout(() => {
+            container.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.08)';
+        }, 1000);
+    }
+    console.warn('Audio playback failed - visual warning shown');
 }
 
 // Visual feedback when bell rings
@@ -254,6 +355,15 @@ function startSession() {
 
     // Initialize bell audio on user interaction (critical for mobile autoplay policy)
     initBellAudio();
+
+    // Resume Web Audio Context if suspended (important!)
+    if (webAudioContext && webAudioContext.state === 'suspended') {
+        webAudioContext.resume().then(() => {
+            console.log('Web Audio Context resumed on session start');
+        }).catch(err => {
+            console.log('Failed to resume Web Audio Context:', err.message);
+        });
+    }
 
     // Pre-load audio by attempting a silent play (helps with mobile compatibility)
     if (bellAudio) {
@@ -409,6 +519,58 @@ function openYouTubeMusic() {
 }
 
 
+// Handle page visibility change - re-enable audio when page becomes visible
+function handleVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+        console.log('Page became visible, checking audio state...');
+
+        // Resume Web Audio Context if suspended
+        if (webAudioContext && webAudioContext.state === 'suspended') {
+            webAudioContext.resume().then(() => {
+                console.log('Web Audio Context resumed');
+            }).catch(err => {
+                console.log('Failed to resume Web Audio Context:', err.message);
+            });
+        }
+
+        // Re-touch the HTML5 Audio to keep it alive
+        if (bellAudio) {
+            // Just touching the audio object helps keep it active on some browsers
+            bellAudio.volume = bellVolume;
+        }
+    }
+}
+
+// Periodic audio keep-alive (helps prevent browser from suspending audio)
+let audioKeepAliveInterval = null;
+
+function startAudioKeepAlive() {
+    if (audioKeepAliveInterval) return;
+
+    audioKeepAliveInterval = setInterval(() => {
+        // Only run when timer is active
+        if (timerInterval && !isPaused) {
+            // Resume Web Audio Context if suspended
+            if (webAudioContext && webAudioContext.state === 'suspended') {
+                webAudioContext.resume().catch(() => {});
+            }
+
+            // Verify HTML5 Audio is still loaded
+            if (bellAudio && bellAudio.readyState < 2) {
+                console.log('Bell audio not ready, reinitializing...');
+                reinitializeBellAudio();
+            }
+        }
+    }, 30000); // Check every 30 seconds
+}
+
+function stopAudioKeepAlive() {
+    if (audioKeepAliveInterval) {
+        clearInterval(audioKeepAliveInterval);
+        audioKeepAliveInterval = null;
+    }
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     // Set default mode
@@ -420,4 +582,10 @@ document.addEventListener('DOMContentLoaded', function() {
         bellVolumeSlider.value = bellVolume * 100;
         document.getElementById('bellVolumeValue').textContent = Math.round(bellVolume * 100) + '%';
     }
+
+    // Listen for page visibility changes
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Start audio keep-alive checker
+    startAudioKeepAlive();
 });
